@@ -19,6 +19,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @RunWith(AndroidJUnit4.class)
@@ -54,6 +55,53 @@ public class CriminalIntentDBTest {
         LiveData<Crime> crimeLiveData = mCrimeDAO.getCrime(demoCrime.getId());
         Crime crime = LiveDataTestUtil.getValue(crimeLiveData);
         MatcherAssert.assertThat(crime, Matchers.equalTo(demoCrime));
+    }
+
+    @Test
+    public void insertAndUpdateCrime() throws InterruptedException {
+        Crime demoCrime = new Crime(
+                UUID.randomUUID(),
+                "testTitle",
+                new Date(),
+                true,
+                "testSuspect");
+
+        mCrimeDAO.insertCrimes(demoCrime);
+
+        Crime updateCrime = new Crime(
+                demoCrime.getId(),
+                "updateTitle",
+                new Date(),
+                true,
+                "updateSuspect");
+        mCrimeDAO.updateCrimes(updateCrime);
+
+        //TEST
+        LiveData<Crime> crimeLiveData = mCrimeDAO.getCrime(demoCrime.getId());
+        Crime crime = LiveDataTestUtil.getValue(crimeLiveData);
+        MatcherAssert.assertThat(crime, Matchers.equalTo(updateCrime));
+    }
+
+    @Test
+    public void insertAndDeleteCrime() throws InterruptedException {
+        // BEFORE : Adding demo user & demo item. Next, get the item added & delete it.
+        Crime demoCrime = new Crime(
+                UUID.randomUUID(),
+                "testTitle",
+                new Date(),
+                true,
+                "testSuspect");
+
+        mCrimeDAO.insertCrimes(demoCrime);
+        LiveData<Crime> crimeLiveData = mCrimeDAO.getCrime(demoCrime.getId());
+        Crime crimeAdded = LiveDataTestUtil.getValue(crimeLiveData);
+        mCrimeDAO.deleteCrimes(crimeAdded);
+
+        //TEST
+        LiveData<List<Crime>> crimeListLiveData = mCrimeDAO.getCrimes();
+        List<Crime> crimeList = LiveDataTestUtil.getValue(crimeListLiveData);
+        MatcherAssert.assertThat(crimeList.isEmpty(),Matchers.equalTo(true));
+
     }
 
     @After
